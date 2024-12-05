@@ -1,3 +1,6 @@
 name: Party
-version: '${project.version}'
-main: org.wayggstar.party.Party
+version: '1.0.0'
+main: org.wayggstar.party.PartyMain
+commands:
+  파티:
+    description: 파티시스템의 명령어
