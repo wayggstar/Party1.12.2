@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.List;
 import java.util.UUID;
 
 public class Command implements CommandExecutor {
@@ -103,9 +104,11 @@ public class Command implements CommandExecutor {
                 }
                 else if (args.length == 1 && args[0].equalsIgnoreCase("채팅")){
                     if (partyManager.isPartyChatEnabled(player.getUniqueId())) {
+                        player.sendMessage("§a파티채팅모드가 켜졌습니다.");
                         partyManager.PartyChat.put(player.getUniqueId(), true);
                     } else{
                         partyManager.PartyChat.put(player.getUniqueId(), false);
+                        player.sendMessage("§a파티채팅모드가 꺼졌습니다.");
                     }
                 }
                 else if (args.length == 1 && args[0].equalsIgnoreCase("전투")){
@@ -122,9 +125,37 @@ public class Command implements CommandExecutor {
 
                    if (partyManager.isPartyPVPEnabled(partyName)) {
                        partyManager.PartyPVP.put(partyName, true);
+                       List<UUID> members = partyManager.getPartyMembers(partyName);
+                       if (members == null || members.isEmpty()){
+                           return true;
+                       }
+
+                       for (UUID memberID : members) {
+                           Player Pmember = Bukkit.getPlayer(memberID);
+                           if (player.isOnline()) {
+                               player.sendMessage(" ");
+                               player.sendMessage("§c파티장이 파티 PVP를 활성화 했습니다.");
+                               player.sendMessage(" ");
+
+                           }
+                       }
                    }
                    else {
                        partyManager.PartyPVP.put(partyName, false);
+                       List<UUID> members = partyManager.getPartyMembers(partyName);
+                       if (members == null || members.isEmpty()){
+                           return true;
+                       }
+
+                       for (UUID memberID : members) {
+                           Player Pmember = Bukkit.getPlayer(memberID);
+                           if (player.isOnline()) {
+                               player.sendMessage(" ");
+                               player.sendMessage("§a파티장이 파티 PVP를 비활성화 했습니다.");
+                               player.sendMessage(" ");
+
+                           }
+                       }
                    }
                 }
                 else {
@@ -133,6 +164,7 @@ public class Command implements CommandExecutor {
                     player.sendMessage("§r§7/파티 초대 [플레이어] §r§7- 자신의 §b파티§r§7에 플레이어를 초대합니다.");
                     player.sendMessage("§r§7/파티 [수락|거절] §r§7- §b파티 §r§7초대를 §a수락§r§7혹은 §c거절§r§7합니다.");
                     player.sendMessage("§r§7/파티 채팅 §r§7- §b파티§r§7채팅모드로 전환합니다.");
+                    player.sendMessage("§r§7/파티 전투 §r§7- §b파티§r§7PVP모드로 전환합니다.");
                     player.sendMessage("============================================");
                 }
             }

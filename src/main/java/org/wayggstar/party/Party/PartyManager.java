@@ -88,15 +88,19 @@ public class PartyManager {
         playerInvites.remove(invitee);
     }
 
-    public List<UUID> getPartyMembers(String partyName) {
-        return partyMembers.get(partyName);
-    }
-
     public boolean isPartyChatEnabled(UUID player) {
         return PartyChat.getOrDefault(player, false);
     }
 
     public boolean isPartyPVPEnabled(String partyName) {
         return PartyPVP.getOrDefault(partyName, false);
+    }
+
+    public List<UUID> getPartyMembers(String partyName) {
+        Party party = partyMap.get(partyName);
+        if (party == null) {
+            return null;
+        }
+        return party.getMembers();
     }
 }
