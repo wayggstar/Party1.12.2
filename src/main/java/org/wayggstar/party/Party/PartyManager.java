@@ -12,7 +12,6 @@ import java.util.UUID;
 
 public class PartyManager {
     public Map<String, Party> partyMap = new HashMap<>();
-    public Map<String, List<UUID>> partyMembers = new HashMap<>();
     public Map<UUID, String> playerPartyMap = new HashMap<>();
     public Map<UUID, UUID> playerInvites = new HashMap<>();
     public Map<UUID, Boolean> PartyChat = new HashMap<>();
@@ -41,6 +40,28 @@ public class PartyManager {
         }
         party.addMember(member);
         return true;
+    }
+
+    public boolean changeLeader(UUID leaderUUID, UUID newLeader) {
+        String partyName = getPlayerParty(leaderUUID);
+        if (partyName == null) {
+            return false;
+        }
+        Party party = partyMap.get(partyName);
+        if (party == null) {
+            return false;
+        }
+        if (!party.getLeader().equals(leaderUUID)) {
+            return false;
+        }
+        if (!party.isMember(newLeader)) {
+            return false;
+        }
+        if (party.changeLeader(newLeader)) {
+            playerPartyMap.put(newLeader, partyName);
+            return true;
+        }
+        return false;
     }
 
     public boolean removeMember(String name, UUID member){

@@ -1,6 +1,7 @@
 package org.wayggstar.party.Party;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -61,7 +62,7 @@ public class Command implements CommandExecutor {
                             if (partyManager.isInviteExpired(targetPlayer.getUniqueId())) {
                                 partyManager.removeInvite(targetPlayer.getUniqueId());
                                 targetPlayer.sendMessage("§c30초가 지나 초대가 자동으로 취소되었습니다.");
-                                player.sendMessage("§c" + targetPlayer.getName() + "님의 초대가 자동으로 취소되었습니다.");
+                                player.sendMessage("§c" + ChatColor.RED + targetPlayer.getName() + "§c님의 초대가 자동으로 취소되었습니다.");
                             }
                         }, 600); // 600 ticks = 30초
                     } else {
@@ -133,9 +134,9 @@ public class Command implements CommandExecutor {
                        for (UUID memberID : members) {
                            Player Pmember = Bukkit.getPlayer(memberID);
                            if (player.isOnline()) {
-                               player.sendMessage(" ");
-                               player.sendMessage("§c파티장이 파티 PVP를 활성화 했습니다.");
-                               player.sendMessage(" ");
+                               Pmember.sendMessage(" ");
+                               Pmember.sendMessage("§c파티장이 파티 PVP를 활성화 했습니다.");
+                               Pmember.sendMessage(" ");
 
                            }
                        }
@@ -150,21 +151,117 @@ public class Command implements CommandExecutor {
                        for (UUID memberID : members) {
                            Player Pmember = Bukkit.getPlayer(memberID);
                            if (player.isOnline()) {
-                               player.sendMessage(" ");
-                               player.sendMessage("§a파티장이 파티 PVP를 비활성화 했습니다.");
-                               player.sendMessage(" ");
+                               Pmember.sendMessage(" ");
+                               Pmember.sendMessage("§a파티장이 파티 PVP를 비활성화 했습니다.");
+                               Pmember.sendMessage(" ");
 
                            }
                        }
                    }
                 }
+                else if (args.length == 2 && args[0].equalsIgnoreCase("양도")) {
+                    UUID senderUUID = player.getUniqueId();
+                    String partyName = partyManager.getPlayerParty(senderUUID);
+                    if (partyName == null) {
+                        player.sendMessage(ChatColor.RED + "당신은 어떤 파티에도 속해있지 않습니다.");
+                        return true;
+                    }
+                    Party party = partyManager.partyMap.get(partyName);
+                    if (party == null || !party.getLeader().equals(senderUUID)) {
+                        player.sendMessage(ChatColor.RED + "당신은 이 파티의 리더가 아닙니다.");
+                        return true;
+                    }
+                    String newLeaderName = args[1];
+                    Player newLeaderPlayer = Bukkit.getPlayer(newLeaderName);
+                    if (newLeaderPlayer == null) {
+                        player.sendMessage(ChatColor.RED + "플레이어 '" + newLeaderName + "'을(를) 찾을 수 없습니다.");
+                        return true;
+                    }
+
+                    UUID newLeaderUUID = newLeaderPlayer.getUniqueId();
+                    if (!party.isMember(newLeaderUUID)) {
+                        player.sendMessage(ChatColor.RED + "'" + newLeaderName + "'은(는) 파티 멤버가 아닙니다.");
+                        return true;
+                    }
+                    if (partyManager.changeLeader(senderUUID, newLeaderUUID)) {
+                        player.sendMessage(ChatColor.GREEN + "리더가 '" + newLeaderName + "'(으)로 변경되었습니다.");
+                        newLeaderPlayer.sendMessage(ChatColor.GREEN + "당신이 이제 '" + partyName + "' 파티의 새로운 리더입니다!");
+                    } else {
+                        player.sendMessage(ChatColor.RED + "리더 변경에 실패했습니다.");
+                    }
+
+                    return true;
+                }
+                else if (args.length == 2 && args[0].equalsIgnoreCase("추방")) {
+                    UUID senderUUID = player.getUniqueId();
+                    String partyName = partyManager.getPlayerParty(senderUUID);
+                    if (partyName == null) {
+                        player.sendMessage(ChatColor.RED + "당신은 어떤 파티에도 속해있지 않습니다.");
+                        return true;
+                    }
+                    Party party = partyManager.partyMap.get(partyName);
+                    if (party == null || !party.getLeader().equals(senderUUID)) {
+                        player.sendMessage(ChatColor.RED + "당신은 이 파티의 리더가 아닙니다.");
+                        return true;
+                    }
+                    String Target = args[1];
+                    Player Targetplayer = Bukkit.getPlayer(Target);
+                    if (Targetplayer == null) {
+                        player.sendMessage(ChatColor.RED + "플레이어 '" + Target + "'을(를) 찾을 수 없습니다.");
+                        return true;
+                    }
+
+                    UUID newLeaderUUID = Targetplayer.getUniqueId();
+                    if (!party.isMember(newLeaderUUID)) {
+                        player.sendMessage(ChatColor.RED + "'" + Target + "'은(는) 파티 멤버가 아닙니다.");
+                        return true;
+                    }
+                    if (partyManager.removeMember(partyName, Targetplayer.getUniqueId())) {
+                        List<UUID> members = partyManager.getPartyMembers(partyName);
+                        if (members == null || members.isEmpty()){
+                            return true;
+                        }
+                        for (UUID memberID : members) {
+                            Player Pmember = Bukkit.getPlayer(memberID);
+                            if (player.isOnline()) {
+                                Pmember.sendMessage(ChatColor.RED + "'" + Target + "'이(가) 추방되었습니다.");
+                            }
+                        }
+                    }
+                    player.sendMessage(ChatColor.RED + "파티에서 탈퇴하셨습니다.");
+                    return true;
+                }
+
+                else if (args.length == 1 && args[0].equalsIgnoreCase("탈퇴")) {
+                    UUID senderUUID = player.getUniqueId();
+                    String partyName = partyManager.getPlayerParty(senderUUID);
+                    if (partyName == null) {
+                        player.sendMessage(ChatColor.RED + "당신은 어떤 파티에도 속해있지 않습니다.");
+                        return true;
+                    }
+                    if (partyManager.removeMember(partyName, player.getUniqueId())) {
+                        List<UUID> members = partyManager.getPartyMembers(partyName);
+                        if (members == null || members.isEmpty()){
+                            return true;
+                        }
+                        for (UUID memberID : members) {
+                            Player Pmember = Bukkit.getPlayer(memberID);
+                            if (player.isOnline()) {
+                                Pmember.sendMessage(ChatColor.RED + "'" + player.getName() + "'이(가) 파티를 탈퇴했습니다.");
+                            }
+                        }
+                    }
+                }
                 else {
                     player.sendMessage("§7===========§b§l파티 §a§l시스템§r§7===========");
                     player.sendMessage("§r§7/파티 생성 [이름] §r§7- §b파티§r§7를 생성합니다.");
+                    player.sendMessage("§r§7/파티 탈퇴 §r§7- §b파티§7에서 탈퇴합니다.");
                     player.sendMessage("§r§7/파티 초대 [플레이어] §r§7- 자신의 §b파티§r§7에 플레이어를 초대합니다.");
                     player.sendMessage("§r§7/파티 [수락|거절] §r§7- §b파티 §r§7초대를 §a수락§r§7혹은 §c거절§r§7합니다.");
-                    player.sendMessage("§r§7/파티 채팅 §r§7- §b파티§r§7채팅모드로 전환합니다.");
-                    player.sendMessage("§r§7/파티 전투 §r§7- §b파티§r§7PVP모드로 전환합니다.");
+                    player.sendMessage("§r§7/파티 채팅 §r§7- §b파티§r§7채팅모드로 전환합니다.(§c파티장§7)");
+                    player.sendMessage("§r§7/파티 전투 §r§7- §b파티§r§7PVP모드로 전환합니다.(§c파티장§7)");
+                    player.sendMessage("§r§7/파티 양도 [플레이어] §r§7- §b파티장§7권한을 다른플레이어에게 양도합니다.(§c파티장§7)");
+                    player.sendMessage("§r§7/파티 추방 [플레이어] §r§7- §b파티§7에서 플레이어를 추방합니다.(§c파티장§7)");
                     player.sendMessage("============================================");
                 }
             }

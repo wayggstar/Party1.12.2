@@ -24,6 +24,14 @@ public class Party {
         return leader;
     }
 
+    public boolean changeLeader(UUID newLeader) {
+        if (!members.contains(newLeader)) {
+            return false;
+        }
+        this.leader = newLeader;
+        return true;
+    }
+
     public List<UUID> getMembers(){
         return members;
     }
