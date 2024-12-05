@@ -10,6 +10,7 @@ public final class PartyMain extends JavaPlugin {
     private PartyManager partyManager;
     private PChat pChat;
     private PPVP ppvp;
+    private Event event;
 
     @Override
     public void onEnable() {
@@ -17,11 +18,13 @@ public final class PartyMain extends JavaPlugin {
         command = new Command(partyManager, party, this);
         pChat = new PChat(partyManager);
         ppvp = new PPVP(partyManager);
+        event = new Event(partyManager);
 
         getLogger().info("§a파티시스템 활성화(by.wayggstar)");
 
         getServer().getPluginManager().registerEvents(pChat, this);
         getServer().getPluginManager().registerEvents(ppvp, this);
+        getServer().getPluginManager().registerEvents(event, this);
         getCommand("파티").setExecutor(command);
     }
 
